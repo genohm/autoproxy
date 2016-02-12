@@ -1,0 +1,39 @@
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'maven'
+
+group = 'com.genohm'
+version = '0.1'
+
+repositories {
+	mavenCentral()
+}
+
+// In this section you declare the dependencies for your production and test code
+dependencies {
+	compile "com.google.auto.service:auto-service:1.0-rc1"
+	compile "com.squareup:javawriter:2.5.0"
+
+	testCompile "junit:junit:4.11"
+	testCompile "com.google.testing.compile:compile-testing:0.5"
+	testCompile files(org.gradle.internal.jvm.Jvm.current().getToolsJar())
+}
+
+task sourcesJar(type: Jar, dependsOn: classes) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+artifacts {
+    archives sourcesJar
+}
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            repository(url: "$project.artifactory.repository"){
+                authentication(userName: "$project.artifactory.user", password: "$project.artifactory.password")
+            }
+        }
+    }
+}

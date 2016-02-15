@@ -118,6 +118,40 @@ public class AutoProxyProcessorTest {
 				"}"));
 	}
 	
+	@Test
+	public void compileExceptionMethod() {
+		ASSERT.about(javaSource())
+			.that(JavaFileObjects.forSourceLines("good/HelloWorld", 
+				"package good;",
+				"",
+				"import com.genohm.autoproxy.AutoProxy;",
+				"",
+				"@AutoProxy",
+				"public interface HelloWorld {",
+				"",
+				"	public String hello() throws Exception;",
+				"",
+				"}"))
+			.processedWith(new AutoProxyProcessor())
+			.compilesWithoutError()
+			.and().generatesSources(JavaFileObjects.forSourceLines("good.AutoProxy_HelloWorld", 
+				"package good;",
+				"",
+				"public final class AutoProxy_HelloWorld implements HelloWorld{", 
+				"",
+				"	private final HelloWorld instance",
+				"",
+				"	public AutoProxy_HelloWorld(HelloWorld instance) {",
+				"		this.instance = instance;",
+				"	}",
+				"",
+				"	public String hello() throws Exception {",
+				"		return instance.hello()",
+				"	}",
+				"",
+				"}"));
+	}
+	
 //	Currently disabled: unknown what fails here: testing framework does not seem to support this
 //	@Test
 //	public void compilesWithGenericType() {

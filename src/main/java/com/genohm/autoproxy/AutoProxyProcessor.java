@@ -17,6 +17,7 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.TypeParameterElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeKind;
+import javax.lang.model.type.TypeMirror;
 import javax.tools.JavaFileObject;
 
 import com.google.auto.service.AutoService;
@@ -103,11 +104,16 @@ public class AutoProxyProcessor extends AbstractProcessor {
 				parameterNames.add(parameter.getSimpleName().toString());
 			}
 			
+			List<String> throwsTypes = Lists.newArrayList();
+			for (TypeMirror thrownType: method.getThrownTypes()) {
+				throwsTypes.add(thrownType.toString());
+			}
+			
 			javaWriter.beginMethod(method.getReturnType().toString(), 
 				method.getSimpleName().toString(),
 				EnumSet.of(Modifier.PUBLIC), 
 				parameters,
-				Lists.<String>newArrayList());
+				throwsTypes);
 			
 			StringBuilder sb = new StringBuilder();
 			if (!method.getReturnType().getKind().equals(TypeKind.VOID)) {

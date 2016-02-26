@@ -152,7 +152,6 @@ public class AutoProxyProcessor extends AbstractProcessor {
 	
 	private Iterable<ExecutableElement> collectMethods(TypeElement element) {
 		Set<ExecutableElement> methods = Sets.newHashSet();
-		System.err.println(findAllInterfaces(element));
 		for (TypeElement all: findAllInterfaces(element)) {
 			Iterable<ExecutableElement> subMethods = Iterables.filter(TypeHelper.getMethods(all), 
 					Predicates.and(

@@ -3,6 +3,7 @@ package com.genohm.autoproxy;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.EnumSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -16,6 +17,7 @@ import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.TypeParameterElement;
 import javax.lang.model.element.VariableElement;
+import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.tools.JavaFileObject;
@@ -60,6 +62,7 @@ public class AutoProxyProcessor extends AbstractProcessor {
 				generics.add(generic.toString());
 			}
 			
+			
 			String genericString = "";
 			if (generics.size() > 0) {
 				genericString = "<" + Joiner.on(",").join(generics) +">";
@@ -73,12 +76,29 @@ public class AutoProxyProcessor extends AbstractProcessor {
 						null, 
 						element.getSimpleName().toString() + genericString);
 			
+			
+			
 			Iterable<ExecutableElement> methods = collectMethods(element);
 			
 			createConstructor(element, javaWriter, proxyName, genericString);
 			proxyMethods(javaWriter, methods);
 			
 			javaWriter.endType();
+		}
+	}
+	
+	private Set<TypeElement> findAllInterfaces(TypeElement element) {
+		Set<TypeElement> elements = new LinkedHashSet<>();
+		findAllInterfaces(element, elements);
+		return elements;
+	}
+
+	private void findAllInterfaces(TypeElement element, Set<TypeElement> elements) {
+		elements.add(element);
+		for (TypeMirror superElement: element.getInterfaces()) {
+			if (superElement.getKind() == TypeKind.DECLARED) {
+				findAllInterfaces(((TypeElement)((DeclaredType)superElement).asElement()), elements);
+			}
 		}
 	}
 
@@ -130,11 +150,19 @@ public class AutoProxyProcessor extends AbstractProcessor {
 		}
 	}
 	
-	private Iterable<ExecutableElement> collectMethods(Element element) {
-		return Iterables.filter(TypeHelper.getMethods(element), 
-			Predicates.and(
-				MethodPredicates.IS_PUBLIC,
-				Predicates.not(MethodPredicates.IS_STATIC)));
+	private Iterable<ExecutableElement> collectMethods(TypeElement element) {
+		Set<ExecutableElement> methods = Sets.newHashSet();
+		System.err.println(findAllInterfaces(element));
+		for (TypeElement all: findAllInterfaces(element)) {
+			Iterable<ExecutableElement> subMethods = Iterables.filter(TypeHelper.getMethods(all), 
+					Predicates.and(
+						MethodPredicates.IS_PUBLIC,
+						Predicates.not(MethodPredicates.IS_STATIC)));
+			for (ExecutableElement subMethod: subMethods) {
+				methods.add(subMethod);
+			}
+		}
+		return methods;
 	}
 
 	@Override

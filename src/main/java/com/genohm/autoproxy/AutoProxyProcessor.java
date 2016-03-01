@@ -61,8 +61,8 @@ public class AutoProxyProcessor extends AbstractProcessor {
 				//TODO this doesn't work with bounds yet
 				generics.add(generic.toString());
 			}
-			
-			
+
+
 			String genericString = "";
 			if (generics.size() > 0) {
 				genericString = "<" + Joiner.on(",").join(generics) +">";
@@ -118,6 +118,7 @@ public class AutoProxyProcessor extends AbstractProcessor {
 		for (ExecutableElement method: methods) {
 			List<String> parameters = Lists.newArrayList();
 			List<String> parameterNames = Lists.newArrayList();
+
 			for (VariableElement parameter: method.getParameters()) {
 				parameters.add(parameter.asType().toString());
 				parameters.add(parameter.getSimpleName().toString());
@@ -128,8 +129,14 @@ public class AutoProxyProcessor extends AbstractProcessor {
 			for (TypeMirror thrownType: method.getThrownTypes()) {
 				throwsTypes.add(thrownType.toString());
 			}
-			
-			javaWriter.beginMethod(method.getReturnType().toString(), 
+
+			List<? extends TypeParameterElement> typeParameters = method.getTypeParameters();
+			StringBuilder returnType = new StringBuilder(method.getReturnType().toString());
+			if(!typeParameters.isEmpty()) {
+				returnType.insert(0, "<" + typeParameters + "> ");
+			}
+
+			javaWriter.beginMethod(returnType.toString(),
 				method.getSimpleName().toString(),
 				EnumSet.of(Modifier.PUBLIC), 
 				parameters,
@@ -151,7 +158,7 @@ public class AutoProxyProcessor extends AbstractProcessor {
 	}
 	
 	private Iterable<ExecutableElement> collectMethods(TypeElement element) {
-		Set<ExecutableElement> methods = Sets.newHashSet();
+		Set<ExecutableElement> methods = Sets.newLinkedHashSet();
 		for (TypeElement all: findAllInterfaces(element)) {
 			Iterable<ExecutableElement> subMethods = Iterables.filter(TypeHelper.getMethods(all), 
 					Predicates.and(

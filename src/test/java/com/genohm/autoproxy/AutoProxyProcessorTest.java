@@ -10,6 +10,9 @@ import org.junit.runners.JUnit4;
 import com.genohm.autoproxy.AutoProxyProcessor;
 import com.google.testing.compile.JavaFileObjects;
 
+import javax.tools.JavaFileObject;
+import java.io.IOException;
+
 @RunWith(JUnit4.class)
 public class AutoProxyProcessorTest {
 
@@ -191,46 +194,89 @@ public class AutoProxyProcessorTest {
 				"}"));
 	}
 	
-//	Currently disabled: unknown what fails here: testing framework does not seem to support this
-//	@Test
-//	public void compilesWithGenericType() {
-//		ASSERT.about(javaSource())
-//			.that(JavaFileObjects.forSourceLines("good/HelloWorld", 
-//				"package good;",
-//				"",
-//				"import com.genohm.autoproxy.AutoProxy;",
-//				"",
-//				"@AutoProxy",
-//				"public interface HelloWorld<E> {",
-//				"",
-//				"	public E hello();",
-//				"",
-//				"	public void goodbye(E element);",
-//				"",
-//				"}"))
-//			.processedWith(new AutoProxyProcessor())
-//			.compilesWithoutError()
-//			.and().generatesSources(JavaFileObjects.forSourceLines("good.AutoProxy_HelloWorld", 
-//				"package good;",
-//				"",
-//				"final class AutoProxy_HelloWorld<E> implements HelloWorld<E>{", 
-//				"",
-//				"	private final HelloWorld<E> instance",
-//				"",
-//				"	public AutoProxy_HelloWorld(HelloWorld<E> instance) {",
-//				"		this.instance = instance;",
-//				"	}",
-//				"",
-//				"	public E hello() {",
-//				"		return instance.hello()",
-//				"	}",
-//				"",
-//				"	public void goodbye(E element) {",
-//				"		instance.goodbye(element)",
-//				"	}",
-//				"",
-//				"}"));
-//	}
-	
-	
+	@Test
+	public void compilesWithGenericType() {
+		ASSERT.about(javaSource())
+			.that(JavaFileObjects.forSourceLines("good/HelloWorld",
+				"package good;",
+				"",
+				"import com.genohm.autoproxy.AutoProxy;",
+				"",
+				"@AutoProxy",
+				"public interface HelloWorld<E> {",
+				"",
+				"	public E hello();",
+				"",
+				"	public void goodbye(E element);",
+				"",
+				"}"))
+			.processedWith(new AutoProxyProcessor())
+			.compilesWithoutError()
+			.and().generatesSources(JavaFileObjects.forSourceLines("good.AutoProxy_HelloWorld",
+				"package good;",
+				"",
+				"public final class AutoProxy_HelloWorld<E> implements HelloWorld<E>{",
+				"",
+				"	private final HelloWorld<E> instance",
+				"",
+				"	public AutoProxy_HelloWorld(HelloWorld<E> instance) {",
+				"		this.instance = instance;",
+				"	}",
+				"",
+				"	public E hello() {",
+				"		return instance.hello();",
+				"	}",
+				"",
+				"	public void goodbye(E element) {",
+				"		instance.goodbye(element);",
+				"	}",
+				"",
+				"}"));
+	}
+
+	@Test
+	public void compilesWithGenericArguments() throws IOException {
+		ASSERT.about(javaSource())
+				.that(JavaFileObjects.forSourceLines("good/HelloWorld",
+						"package good;",
+						"",
+						"import com.genohm.autoproxy.AutoProxy;",
+						"",
+						"@AutoProxy",
+						"public interface HelloWorld {",
+						"",
+						"	public <E> E hello();",
+						"",
+						"	public <E> void goodbye(E element);",
+						"",
+						"	public <E, F> void goodbye(E element, F otherElement);",
+						"",
+						"}"))
+				.processedWith(new AutoProxyProcessor())
+				.compilesWithoutError()
+				.and().generatesSources(JavaFileObjects.forSourceLines("good.AutoProxy_HelloWorld",
+				"package good;",
+				"",
+				"public final class AutoProxy_HelloWorld implements HelloWorld{",
+				"",
+				"	private final HelloWorld instance",
+				"",
+				"	public AutoProxy_HelloWorld(HelloWorld instance) {",
+				"		this.instance = instance;",
+				"	}",
+				"",
+				"	public <E> E hello() {",
+				"		return instance.hello();",
+				"	}",
+				"",
+				"	public <E> void goodbye(E element) {",
+				"		instance.goodbye(element);",
+				"	}",
+				"",
+				"	public <E, F> void goodbye(E element, F otherElement) {",
+				"		instance.goodbye(element, otherElement);",
+				"	}",
+				"",
+				"}"));
+	}
 }

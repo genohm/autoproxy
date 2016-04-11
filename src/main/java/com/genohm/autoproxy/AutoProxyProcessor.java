@@ -133,7 +133,8 @@ public class AutoProxyProcessor extends AbstractProcessor {
 			List<? extends TypeParameterElement> typeParameters = method.getTypeParameters();
 			StringBuilder returnType = new StringBuilder(method.getReturnType().toString());
 			if(!typeParameters.isEmpty()) {
-				returnType.insert(0, "<" + typeParameters + "> ");
+				String typeParameterString = Joiner.on(",").join(typeParameters);
+				returnType.insert(0, "<" + typeParameterString + "> ");
 			}
 
 			javaWriter.beginMethod(returnType.toString(),

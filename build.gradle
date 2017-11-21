@@ -31,8 +31,8 @@ artifacts {
 uploadArchives {
     repositories {
         mavenDeployer {
-            repository(url: "$project.artifactory.repository"){
-                authentication(userName: "$project.artifactory.user", password: "$project.artifactory.password")
+            repository(url: "$artifactoryRepository"){
+                authentication(userName: "$artifactoryUser", password: "$artifactoryPassword")
             }
         }
     }

@@ -9,3 +9,4 @@ build
 temp
 .idea
 **/*.iml
+gradle.properties
